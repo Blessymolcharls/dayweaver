@@ -17,6 +17,9 @@ class ActivitiesTable extends Table {
   IntColumn get reminderOffset => integer().nullable()();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
+  TextColumn get recurrenceRuleId => text().nullable()();
+  BoolColumn get isRecurrenceInstance =>
+      boolean().withDefault(const Constant(false))();
 
   @override
   Set<Column> get primaryKey => {id};

@@ -5,8 +5,11 @@ import '../../../../core/theme/colors.dart';
 import '../../../../core/theme/typography.dart';
 import '../../../schedule/domain/time_utils.dart';
 import '../../../schedule/presentation/activity_providers.dart';
+import '../../../schedule/presentation/recurring_activities_screen.dart';
 import '../../../schedule/presentation/routine_templates_screen.dart';
 import '../../../schedule/presentation/widgets/copy_schedule_sheet.dart';
+import '../../../settings/presentation/settings_screen.dart';
+import '../daily_review_screen.dart';
 
 class DayHeader extends ConsumerWidget {
   const DayHeader({super.key});
@@ -28,25 +31,47 @@ class DayHeader extends ConsumerWidget {
     final today = TimeUtils.normalizeDate(DateTime.now());
     final isToday = selectedDate.isAtSameMomentAs(today);
 
+    final dateFormat = DateFormat('EEEE, MMMM d');
+    final formattedDate = dateFormat.format(selectedDate);
+
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(_getGreeting(), style: AppTypography.headingMedium),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _getGreeting(),
+                      style: AppTypography.titleMedium.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      formattedDate,
+                      style: AppTypography.headingMedium.copyWith(
+                        fontSize: 22,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               Row(
-                mainAxisSize: MainAxisSize.min,
                 children: [
                   if (!isToday)
                     TextButton.icon(
                       onPressed: () {
                         ref.read(selectedDateProvider.notifier).state = today;
                       },
-                      icon: const Icon(Icons.today_rounded, size: 16),
-                      label: const Text('Back to Today'),
+                      icon: const Icon(Icons.today, size: 16),
+                      label: const Text('Today'),
                       style: TextButton.styleFrom(
                         visualDensity: VisualDensity.compact,
                         padding: const EdgeInsets.symmetric(
@@ -65,8 +90,28 @@ class DayHeader extends ConsumerWidget {
                       Icons.more_vert_rounded,
                       color: AppColors.textSecondary,
                     ),
-                    tooltip: 'Schedule options',
+                    tooltip: 'Schedule & settings',
                     itemBuilder: (context) => [
+                      const PopupMenuItem(
+                        value: 'review',
+                        child: Row(
+                          children: [
+                            Icon(Icons.rate_review_outlined, size: 18),
+                            SizedBox(width: 8),
+                            Text('Daily Review'),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'recurring',
+                        child: Row(
+                          children: [
+                            Icon(Icons.repeat_rounded, size: 18),
+                            SizedBox(width: 8),
+                            Text('Recurring Activities'),
+                          ],
+                        ),
+                      ),
                       const PopupMenuItem(
                         value: 'routines',
                         child: Row(
@@ -87,9 +132,36 @@ class DayHeader extends ConsumerWidget {
                           ],
                         ),
                       ),
+                      const PopupMenuDivider(),
+                      const PopupMenuItem(
+                        value: 'settings',
+                        child: Row(
+                          children: [
+                            Icon(Icons.settings_outlined, size: 18),
+                            SizedBox(width: 8),
+                            Text('Settings'),
+                          ],
+                        ),
+                      ),
                     ],
                     onSelected: (val) {
-                      if (val == 'routines') {
+                      if (val == 'review') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                DailyReviewScreen(initialDate: selectedDate),
+                          ),
+                        );
+                      } else if (val == 'recurring') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const RecurringActivitiesScreen(),
+                          ),
+                        );
+                      } else if (val == 'routines') {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -102,6 +174,13 @@ class DayHeader extends ConsumerWidget {
                           context,
                           initialSourceDate: selectedDate,
                         );
+                      } else if (val == 'settings') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const SettingsScreen(),
+                          ),
+                        );
                       }
                     },
                   ),
@@ -110,70 +189,47 @@ class DayHeader extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 12),
-          // Date navigation row
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceElevated,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.borderSubtle),
-            ),
-            child: Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.chevron_left_rounded),
-                  tooltip: 'Previous day',
-                  color: AppColors.textPrimary,
-                  onPressed: () {
-                    ref.read(selectedDateProvider.notifier).state = selectedDate
-                        .subtract(const Duration(days: 1));
-                  },
-                ),
-                Expanded(
-                  child: InkWell(
-                    onTap: () async {
-                      final picked = await showDatePicker(
-                        context: context,
-                        initialDate: selectedDate,
-                        firstDate: DateTime(2020),
-                        lastDate: DateTime(2035),
-                      );
-                      if (picked != null) {
-                        ref.read(selectedDateProvider.notifier).state =
-                            TimeUtils.normalizeDate(picked);
-                      }
-                    },
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          DateFormat('EEEE').format(selectedDate),
-                          style: AppTypography.titleMedium.copyWith(
-                            color: isToday
-                                ? AppColors.primary
-                                : AppColors.textPrimary,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        Text(
-                          DateFormat('MMMM d, yyyy').format(selectedDate),
-                          style: AppTypography.bodySmall,
-                        ),
-                      ],
-                    ),
+          // Day navigation arrows
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              InkWell(
+                onTap: () {
+                  ref.read(selectedDateProvider.notifier).state = selectedDate
+                      .subtract(const Duration(days: 1));
+                },
+                borderRadius: BorderRadius.circular(8),
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.chevron_left, size: 20),
+                      SizedBox(width: 4),
+                      Text('Previous day'),
+                    ],
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.chevron_right_rounded),
-                  tooltip: 'Next day',
-                  color: AppColors.textPrimary,
-                  onPressed: () {
-                    ref.read(selectedDateProvider.notifier).state = selectedDate
-                        .add(const Duration(days: 1));
-                  },
+              ),
+              InkWell(
+                onTap: () {
+                  ref.read(selectedDateProvider.notifier).state = selectedDate
+                      .add(const Duration(days: 1));
+                },
+                borderRadius: BorderRadius.circular(8),
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('Next day'),
+                      SizedBox(width: 4),
+                      Icon(Icons.chevron_right, size: 20),
+                    ],
+                  ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),

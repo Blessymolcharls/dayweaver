@@ -19,6 +19,8 @@ class Activity implements HasTimeSpan {
   final int? reminderOffsetMinutes;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String? recurrenceRuleId;
+  final bool isRecurrenceInstance;
 
   Activity({
     required this.id,
@@ -33,6 +35,8 @@ class Activity implements HasTimeSpan {
     this.reminderOffsetMinutes,
     DateTime? createdAt,
     DateTime? updatedAt,
+    this.recurrenceRuleId,
+    this.isRecurrenceInstance = false,
   }) : createdAt = createdAt ?? DateTime.now(),
        updatedAt = updatedAt ?? DateTime.now();
 
@@ -55,6 +59,8 @@ class Activity implements HasTimeSpan {
     int? reminderOffsetMinutes,
     DateTime? createdAt,
     DateTime? updatedAt,
+    String? recurrenceRuleId,
+    bool? isRecurrenceInstance,
   }) {
     return Activity(
       id: id ?? this.id,
@@ -70,6 +76,8 @@ class Activity implements HasTimeSpan {
           reminderOffsetMinutes ?? this.reminderOffsetMinutes,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? DateTime.now(),
+      recurrenceRuleId: recurrenceRuleId ?? this.recurrenceRuleId,
+      isRecurrenceInstance: isRecurrenceInstance ?? this.isRecurrenceInstance,
     );
   }
 
@@ -87,7 +95,9 @@ class Activity implements HasTimeSpan {
           notes == other.notes &&
           isCompleted == other.isCompleted &&
           priority == other.priority &&
-          reminderOffsetMinutes == other.reminderOffsetMinutes;
+          reminderOffsetMinutes == other.reminderOffsetMinutes &&
+          recurrenceRuleId == other.recurrenceRuleId &&
+          isRecurrenceInstance == other.isRecurrenceInstance;
 
   @override
   int get hashCode =>
@@ -100,5 +110,7 @@ class Activity implements HasTimeSpan {
       notes.hashCode ^
       isCompleted.hashCode ^
       priority.hashCode ^
-      reminderOffsetMinutes.hashCode;
+      reminderOffsetMinutes.hashCode ^
+      recurrenceRuleId.hashCode ^
+      isRecurrenceInstance.hashCode;
 }

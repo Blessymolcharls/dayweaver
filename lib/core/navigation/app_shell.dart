@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/colors.dart';
+import '../../features/insights/presentation/insights_screen.dart';
 import '../../features/planner/presentation/planner_screen.dart';
 import '../../features/today/presentation/today_screen.dart';
 import 'destination_placeholder.dart';
@@ -19,7 +20,7 @@ class _AppShellState extends State<AppShell> {
     TodayScreen(),
     PlannerScreen(),
     DestinationPlaceholder(destination: NavDestination.goals),
-    DestinationPlaceholder(destination: NavDestination.insights),
+    InsightsScreen(),
   ];
 
   @override

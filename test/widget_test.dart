@@ -44,6 +44,12 @@ void main() {
 
     expect(find.text('Planned for Next Milestone'), findsOneWidget);
 
+    // Switch to Insights tab
+    await tester.tap(find.text('Insights'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Weekly Insights'), findsOneWidget);
+
     // Switch back to Today
     await tester.tap(find.text('Today').first);
     await tester.pumpAndSettle();

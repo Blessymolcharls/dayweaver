@@ -1,6 +1,8 @@
 import '../domain/activity.dart';
 import '../domain/batch_operation_result.dart';
 import '../domain/conflict_strategy.dart';
+import '../domain/daily_review.dart';
+import '../domain/recurrence_rule.dart';
 import '../domain/routine_template.dart';
 import '../domain/routine_template_block.dart';
 
@@ -10,6 +12,18 @@ abstract class ActivityRepository {
 
   /// Gets all activities scheduled on [date], ordered by startMinute ascending.
   Future<List<Activity>> getActivitiesForDate(DateTime date);
+
+  /// Gets activities within date range [startDate] to [endDate], inclusive.
+  Future<List<Activity>> getActivitiesForDateRange(
+    DateTime startDate,
+    DateTime endDate,
+  );
+
+  /// Watches activities within date range [startDate] to [endDate], inclusive.
+  Stream<List<Activity>> watchActivitiesForDateRange(
+    DateTime startDate,
+    DateTime endDate,
+  );
 
   /// Gets a single activity by [id].
   Future<Activity?> getActivityById(String id);
@@ -27,7 +41,6 @@ abstract class ActivityRepository {
   Future<int> countActivities();
 
   /// Duplicates an existing activity.
-  /// If [targetDate] or [targetStartMinute] are specified, they are applied.
   Future<Activity> duplicateActivity(
     String id, {
     DateTime? targetDate,
@@ -59,7 +72,6 @@ abstract class ActivityRepository {
   Future<int> countTemplates();
 
   /// Applies a routine template to a specific date using [conflictStrategy].
-  /// Runs inside a database transaction to ensure atomicity.
   Future<BatchOperationResult> applyTemplateToDate({
     required String templateId,
     required DateTime date,
@@ -67,10 +79,23 @@ abstract class ActivityRepository {
   });
 
   /// Copies an entire schedule from [fromDate] to [toDate] using [conflictStrategy].
-  /// Runs inside a database transaction to ensure atomicity.
   Future<BatchOperationResult> copySchedule({
     required DateTime fromDate,
     required DateTime toDate,
     required ConflictStrategy conflictStrategy,
   });
+
+  /// Recurrence Rule operations
+  Stream<List<RecurrenceRule>> watchRecurrenceRules();
+  Future<List<RecurrenceRule>> getRecurrenceRules();
+  Future<RecurrenceRule?> getRecurrenceRuleById(String id);
+  Future<void> saveRecurrenceRule(RecurrenceRule rule);
+  Future<void> deleteRecurrenceRule(String id);
+  Future<void> toggleRecurrenceRuleEnabled(String id, bool isEnabled);
+  Future<void> addRecurrenceException(String ruleId, DateTime date);
+  Future<int> generateRecurringActivitiesForDate(DateTime date);
+
+  /// Daily Review operations
+  Future<DailyReview?> getDailyReview(DateTime date);
+  Future<void> saveDailyReview(DailyReview review);
 }

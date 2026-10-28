@@ -7,7 +7,7 @@ import 'package:dayweaver/features/schedule/domain/activity_category.dart';
 import 'package:dayweaver/features/schedule/domain/activity_priority.dart';
 import 'package:dayweaver/features/schedule/presentation/activity_providers.dart';
 import 'package:dayweaver/shared/widgets/activity_details_sheet.dart';
-import 'activity_form_sheet_test.dart';
+import '../helpers/fake_activity_repository.dart';
 
 void main() {
   testWidgets('ActivityDetailsSheet displays full details and action buttons', (

@@ -54,4 +54,3 @@ class RoutineTemplateBlock implements HasTimeSpan {
     );
   }
 }
-
