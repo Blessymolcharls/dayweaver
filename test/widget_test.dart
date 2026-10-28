@@ -12,6 +12,12 @@ void main() {
           activitiesForSelectedDateProvider.overrideWith(
             (ref) => Stream.value([]),
           ),
+          activitiesForPlannerDateProvider.overrideWith(
+            (ref) => Stream.value([]),
+          ),
+          plannerActivityDatesProvider.overrideWith(
+            (ref) => Future.value(<DateTime>{}),
+          ),
           currentMinuteProvider.overrideWith((ref) => Stream.value(600)),
         ],
         child: const DayweaverApp(),
@@ -28,6 +34,12 @@ void main() {
 
     // Switch to Planner tab
     await tester.tap(find.text('Planner'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Routines'), findsOneWidget);
+
+    // Switch to Goals tab
+    await tester.tap(find.text('Goals'));
     await tester.pumpAndSettle();
 
     expect(find.text('Planned for Next Milestone'), findsOneWidget);

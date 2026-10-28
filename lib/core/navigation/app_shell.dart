@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/colors.dart';
+import '../../features/planner/presentation/planner_screen.dart';
 import '../../features/today/presentation/today_screen.dart';
 import 'destination_placeholder.dart';
 import 'nav_destination.dart';
@@ -16,7 +17,7 @@ class _AppShellState extends State<AppShell> {
 
   final List<Widget> _destinations = const [
     TodayScreen(),
-    DestinationPlaceholder(destination: NavDestination.planner),
+    PlannerScreen(),
     DestinationPlaceholder(destination: NavDestination.goals),
     DestinationPlaceholder(destination: NavDestination.insights),
   ];

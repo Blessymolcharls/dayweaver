@@ -4,7 +4,7 @@ import '../../../../core/theme/colors.dart';
 import '../../../../core/theme/typography.dart';
 import '../../../schedule/domain/activity.dart';
 import '../../../schedule/presentation/activity_providers.dart';
-import '../../../../shared/widgets/activity_form_sheet.dart';
+import '../../../../shared/widgets/activity_details_sheet.dart';
 
 class TimelineActivityCard extends ConsumerWidget {
   final Activity activity;
@@ -24,11 +24,7 @@ class TimelineActivityCard extends ConsumerWidget {
 
     return InkWell(
       onTap: () {
-        ActivityFormSheet.show(
-          context,
-          activityToEdit: activity,
-          initialDate: activity.date,
-        );
+        ActivityDetailsSheet.show(context, activity);
       },
       borderRadius: BorderRadius.circular(10),
       child: Container(

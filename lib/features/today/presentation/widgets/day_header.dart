@@ -5,6 +5,8 @@ import '../../../../core/theme/colors.dart';
 import '../../../../core/theme/typography.dart';
 import '../../../schedule/domain/time_utils.dart';
 import '../../../schedule/presentation/activity_providers.dart';
+import '../../../schedule/presentation/routine_templates_screen.dart';
+import '../../../schedule/presentation/widgets/copy_schedule_sheet.dart';
 
 class DayHeader extends ConsumerWidget {
   const DayHeader({super.key});
@@ -35,26 +37,76 @@ class DayHeader extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(_getGreeting(), style: AppTypography.headingMedium),
-              if (!isToday)
-                TextButton.icon(
-                  onPressed: () {
-                    ref.read(selectedDateProvider.notifier).state = today;
-                  },
-                  icon: const Icon(Icons.today_rounded, size: 16),
-                  label: const Text('Back to Today'),
-                  style: TextButton.styleFrom(
-                    visualDensity: VisualDensity.compact,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (!isToday)
+                    TextButton.icon(
+                      onPressed: () {
+                        ref.read(selectedDateProvider.notifier).state = today;
+                      },
+                      icon: const Icon(Icons.today_rounded, size: 16),
+                      label: const Text('Back to Today'),
+                      style: TextButton.styleFrom(
+                        visualDensity: VisualDensity.compact,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        backgroundColor: AppColors.surfaceSecondary,
+                        foregroundColor: AppColors.primary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
                     ),
-                    backgroundColor: AppColors.surfaceSecondary,
-                    foregroundColor: AppColors.primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                  PopupMenuButton<String>(
+                    icon: const Icon(
+                      Icons.more_vert_rounded,
+                      color: AppColors.textSecondary,
                     ),
+                    tooltip: 'Schedule options',
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(
+                        value: 'routines',
+                        child: Row(
+                          children: [
+                            Icon(Icons.dashboard_customize_outlined, size: 18),
+                            SizedBox(width: 8),
+                            Text('Routine Templates'),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'copy',
+                        child: Row(
+                          children: [
+                            Icon(Icons.copy_rounded, size: 18),
+                            SizedBox(width: 8),
+                            Text('Copy Schedule...'),
+                          ],
+                        ),
+                      ),
+                    ],
+                    onSelected: (val) {
+                      if (val == 'routines') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const RoutineTemplatesScreen(),
+                          ),
+                        );
+                      } else if (val == 'copy') {
+                        CopyScheduleSheet.show(
+                          context,
+                          initialSourceDate: selectedDate,
+                        );
+                      }
+                    },
                   ),
-                ),
+                ],
+              ),
             ],
           ),
           const SizedBox(height: 12),

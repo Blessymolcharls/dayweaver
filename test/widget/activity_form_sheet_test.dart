@@ -5,6 +5,10 @@ import 'package:dayweaver/core/theme/app_theme.dart';
 import 'package:dayweaver/shared/widgets/activity_form_sheet.dart';
 import 'package:dayweaver/features/schedule/data/activity_repository.dart';
 import 'package:dayweaver/features/schedule/domain/activity.dart';
+import 'package:dayweaver/features/schedule/domain/batch_operation_result.dart';
+import 'package:dayweaver/features/schedule/domain/conflict_strategy.dart';
+import 'package:dayweaver/features/schedule/domain/routine_template.dart';
+import 'package:dayweaver/features/schedule/domain/routine_template_block.dart';
 import 'package:dayweaver/features/schedule/presentation/activity_providers.dart';
 
 class FakeActivityRepository implements ActivityRepository {
@@ -36,6 +40,74 @@ class FakeActivityRepository implements ActivityRepository {
   @override
   Stream<List<Activity>> watchActivitiesForDate(DateTime date) =>
       Stream.value(saved);
+
+  @override
+  Future<Activity> duplicateActivity(
+    String id, {
+    DateTime? targetDate,
+    int? targetStartMinute,
+  }) async {
+    final act = saved.firstWhere((a) => a.id == id);
+    final copy = act.copyWith(
+      id: 'copy-${act.id}',
+      title: '${act.title} (Copy)',
+      isCompleted: false,
+    );
+    saved.add(copy);
+    return copy;
+  }
+
+  @override
+  Future<void> moveActivity(
+    String id, {
+    required DateTime newDate,
+    required int newStartMinute,
+    required int newEndMinute,
+  }) async {}
+
+  @override
+  Future<Set<DateTime>> getDatesWithActivities(
+    DateTime startRange,
+    DateTime endRange,
+  ) async => {};
+
+  @override
+  Stream<List<RoutineTemplate>> watchTemplates() => Stream.value([]);
+
+  @override
+  Future<List<RoutineTemplate>> getTemplates() async => [];
+
+  @override
+  Future<RoutineTemplate?> getTemplateById(String id) async => null;
+
+  @override
+  Future<void> saveTemplate(RoutineTemplate template) async {}
+
+  @override
+  Future<void> deleteTemplate(String id) async {}
+
+  @override
+  Future<void> saveTemplateBlock(RoutineTemplateBlock block) async {}
+
+  @override
+  Future<void> deleteTemplateBlock(String blockId) async {}
+
+  @override
+  Future<int> countTemplates() async => 0;
+
+  @override
+  Future<BatchOperationResult> applyTemplateToDate({
+    required String templateId,
+    required DateTime date,
+    required ConflictStrategy conflictStrategy,
+  }) async => BatchOperationResult.success();
+
+  @override
+  Future<BatchOperationResult> copySchedule({
+    required DateTime fromDate,
+    required DateTime toDate,
+    required ConflictStrategy conflictStrategy,
+  }) async => BatchOperationResult.success();
 }
 
 void main() {
