@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../core/theme/colors.dart';
 import '../../core/theme/typography.dart';
+import '../../features/goals/domain/goal.dart';
+import '../../features/goals/presentation/goal_detail_screen.dart';
+import '../../features/goals/presentation/goal_providers.dart';
 import '../../features/schedule/domain/activity.dart';
 import '../../features/schedule/domain/time_utils.dart';
 import '../../features/schedule/presentation/activity_providers.dart';
@@ -288,6 +291,9 @@ class ActivityDetailsSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final category = activity.category;
+    final linkedGoalsAsync = ref.watch(
+      goalsForActivityStreamProvider(activity.id),
+    );
 
     return Container(
       decoration: const BoxDecoration(
@@ -463,6 +469,74 @@ class ActivityDetailsSheet extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
+
+          // Linked Goals
+          linkedGoalsAsync.when(
+            data: (goals) {
+              if (goals.isEmpty) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.flag_rounded,
+                          size: 14,
+                          color: AppColors.primary,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Linked Goals',
+                          style: AppTypography.labelSmall.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      children: goals.map((Goal g) {
+                        return ActionChip(
+                          avatar: Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: g.category.color,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          label: Text(
+                            g.title,
+                            style: AppTypography.labelSmall.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          backgroundColor: AppColors.surfaceSecondary,
+                          side: const BorderSide(color: AppColors.borderSubtle),
+                          onPressed: () {
+                            Navigator.pop(context);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => GoalDetailScreen(goalId: g.id),
+                              ),
+                            );
+                          },
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
+              );
+            },
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const SizedBox.shrink(),
+          ),
 
           // Completion status toggle button
           OutlinedButton.icon(

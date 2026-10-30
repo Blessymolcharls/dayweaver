@@ -342,8 +342,9 @@ class DriftActivityRepository implements ActivityRepository {
       );
       if (overlap.hasOverlap) {
         final gaps = TimeUtils.calculateUnscheduledGaps(existing);
-        final fittingGap =
-            gaps.where((g) => g.durationMinutes >= duration).firstOrNull;
+        final fittingGap = gaps
+            .where((g) => g.durationMinutes >= duration)
+            .firstOrNull;
         if (fittingGap != null) {
           start = fittingGap.startMinute;
           end = start + duration;
@@ -515,7 +516,9 @@ class DriftActivityRepository implements ActivityRepository {
   @override
   Future<void> saveTemplate(RoutineTemplate template) async {
     await _db.transaction(() async {
-      await _db.into(_db.routineTemplatesTable).insertOnConflictUpdate(
+      await _db
+          .into(_db.routineTemplatesTable)
+          .insertOnConflictUpdate(
             RoutineTemplatesTableCompanion(
               id: Value(template.id),
               name: Value(template.name),
@@ -526,9 +529,9 @@ class DriftActivityRepository implements ActivityRepository {
           );
 
       // Replace blocks
-      await (_db.delete(_db.routineTemplateBlocksTable)
-            ..where((tbl) => tbl.templateId.equals(template.id)))
-          .go();
+      await (_db.delete(
+        _db.routineTemplateBlocksTable,
+      )..where((tbl) => tbl.templateId.equals(template.id))).go();
 
       for (final RoutineTemplateBlock block in template.blocks) {
         await _db

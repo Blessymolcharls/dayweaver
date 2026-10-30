@@ -13,6 +13,11 @@ import '../domain/recurrence_rule.dart';
 import '../domain/routine_template.dart';
 import '../domain/time_utils.dart';
 import '../domain/weekly_metrics.dart';
+import '../../goals/data/goal_repository.dart';
+import '../../goals/data/sample_goals.dart';
+import '../../goals/domain/goal.dart';
+import '../../goals/domain/goal_milestone.dart';
+import '../../goals/presentation/goal_providers.dart';
 
 /// Database singleton provider
 final appDatabaseProvider = Provider<AppDatabase>((Ref ref) {
@@ -104,6 +109,18 @@ final FutureProvider<void> databaseInitializerProvider = FutureProvider<void>((
       .where((Activity a) => a.reminderOffsetMinutes != null && !a.isCompleted)
       .toList();
   await notificationService.rescheduleAllReminders(needReminder);
+
+  // 7. Seed default goals if no goals exist
+  final GoalRepository goalRepo = ref.watch(goalRepositoryProvider);
+  final List<Goal> existingGoals = await goalRepo.getGoals();
+  if (existingGoals.isEmpty) {
+    for (final Goal g in SampleGoals.getDefaultGoals()) {
+      await goalRepo.saveGoal(g);
+      for (final GoalMilestone m in g.milestones) {
+        await goalRepo.saveMilestone(m);
+      }
+    }
+  }
 });
 
 /// Stream provider for activities on the currently selected date (Today tab)

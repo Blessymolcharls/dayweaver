@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dayweaver/main.dart';
+import 'package:dayweaver/features/goals/presentation/goal_providers.dart';
 import 'package:dayweaver/features/schedule/presentation/activity_providers.dart';
 
 void main() {
@@ -19,6 +20,7 @@ void main() {
             (ref) => Future.value(<DateTime>{}),
           ),
           currentMinuteProvider.overrideWith((ref) => Stream.value(600)),
+          allGoalsStreamProvider.overrideWith((ref) => Stream.value([])),
         ],
         child: const DayweaverApp(),
       ),
@@ -42,7 +44,8 @@ void main() {
     await tester.tap(find.text('Goals'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Planned for Next Milestone'), findsOneWidget);
+    expect(find.text('Goals & Milestones'), findsOneWidget);
+    expect(find.text('New Goal'), findsOneWidget);
 
     // Switch to Insights tab
     await tester.tap(find.text('Insights'));

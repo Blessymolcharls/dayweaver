@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../theme/colors.dart';
+import '../../features/goals/presentation/goals_screen.dart';
 import '../../features/insights/presentation/insights_screen.dart';
 import '../../features/planner/presentation/planner_screen.dart';
 import '../../features/today/presentation/today_screen.dart';
-import 'destination_placeholder.dart';
 import 'nav_destination.dart';
 
 class AppShell extends StatefulWidget {
@@ -19,7 +19,7 @@ class _AppShellState extends State<AppShell> {
   final List<Widget> _destinations = const [
     TodayScreen(),
     PlannerScreen(),
-    DestinationPlaceholder(destination: NavDestination.goals),
+    GoalsScreen(),
     InsightsScreen(),
   ];
 
