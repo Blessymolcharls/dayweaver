@@ -155,12 +155,6 @@ final StreamProviderFamily<List<Goal>, String> goalsForActivityStreamProvider =
       final GoalRepository repo = ref.watch(goalRepositoryProvider);
       return repo.watchGoalsForActivity(activityId);
     });
-/// Stream of goals linked to a specific activity
-final StreamProviderFamily<List<Goal>, String> goalsForActivityStreamProvider =
-    StreamProvider.family<List<Goal>, String>((Ref ref, String activityId) {
-  final GoalRepository repo = ref.watch(goalRepositoryProvider);
-  return repo.watchGoalsForActivity(activityId);
-});
 
 /// Weekly insights for goals
 class GoalWeeklyInsights {
@@ -213,44 +207,3 @@ goalWeeklyInsightsProvider =
         approachingDeadlines: approaching,
       );
     });
-
-/// Weekly insights for goals
-class GoalWeeklyInsights {
-  final int activeGoalsCount;
-  final int completedThisWeekCount;
-  final int progressUpdatesCount;
-  final List<Goal> approachingDeadlines;
-
-  const GoalWeeklyInsights({
-    required this.activeGoalsCount,
-    required this.completedThisWeekCount,
-    required this.progressUpdatesCount,
-    required this.approachingDeadlines,
-  });
-}
-
-final FutureProviderFamily<GoalWeeklyInsights, DateTime>
-    goalWeeklyInsightsProvider =
-    FutureProvider.family<GoalWeeklyInsights, DateTime>(
-        (Ref ref, DateTime monday) async {
-  final GoalRepository repo = ref.watch(goalRepositoryProvider);
-  final DateTime sunday =
-      DateTime(monday.year, monday.month, monday.day + 6, 23, 59, 59);
-
-  final active = await repo.getActiveGoalsCount();
-  final completed = await repo.getCompletedGoalsCountForPeriod(monday, sunday);
-  final updatesCount =
-      await repo.getProgressUpdatesCountForPeriod(monday, sunday);
-  final approaching = await repo
-      .getGoalsApproachingDeadline(DateTime.now().add(const Duration(days: 7)));
-
-  return GoalWeeklyInsights(
-    activeGoalsCount: active,
-    completedThisWeekCount: completed,
-    progressUpdatesCount: updatesCount,
-    approachingDeadlines: approaching,
-  );
-});
-
-
-

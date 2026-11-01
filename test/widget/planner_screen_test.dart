@@ -111,7 +111,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify Empty State message and quick action buttons
-      expect(find.text('No Activities Scheduled'), findsOneWidget);
+      expect(find.text('No activities planned yet.'), findsOneWidget);
       expect(find.text('Apply Routine'), findsOneWidget);
       expect(find.text('Copy Schedule'), findsOneWidget);
       expect(find.text('Add Activity'), findsOneWidget);

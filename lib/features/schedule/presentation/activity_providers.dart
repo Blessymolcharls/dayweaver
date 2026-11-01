@@ -4,8 +4,6 @@ import '../../../core/database/app_database.dart';
 import '../../../core/notifications/notification_providers.dart';
 import '../data/activity_repository.dart';
 import '../data/drift_activity_repository.dart';
-import '../data/sample_activities.dart';
-import '../data/sample_templates.dart';
 import '../domain/activity.dart';
 import '../domain/activity_category.dart';
 import '../domain/daily_review.dart';
@@ -14,9 +12,6 @@ import '../domain/routine_template.dart';
 import '../domain/time_utils.dart';
 import '../domain/weekly_metrics.dart';
 import '../../goals/data/goal_repository.dart';
-import '../../goals/data/sample_goals.dart';
-import '../../goals/domain/goal.dart';
-import '../../goals/domain/goal_milestone.dart';
 import '../../goals/presentation/goal_providers.dart';
 
 /// Database singleton provider
@@ -47,59 +42,25 @@ final StateProvider<DateTime> plannerSelectedDateProvider =
       return TimeUtils.normalizeDate(DateTime.now());
     });
 
-/// Initializes sample data, notification service, and pending reminders on startup
+/// Initializes database cleanup, notification service, and pending reminders on startup
 final FutureProvider<void> databaseInitializerProvider = FutureProvider<void>((
   Ref ref,
 ) async {
   final ActivityRepository repo = ref.watch(activityRepositoryProvider);
   final notificationService = ref.watch(notificationServiceProvider);
+  final GoalRepository goalRepo = ref.watch(goalRepositoryProvider);
 
   // 1. Initialize notification system
   await notificationService.initialize();
 
-  // 2. Seed sample activities for today if no activities exist
-  final int activityCount = await repo.countActivities();
-  if (activityCount == 0) {
-    final DateTime now = DateTime.now();
-    final List<Activity> sample = SampleActivities.generateForDate(now);
-    for (final Activity act in sample) {
-      await repo.saveActivity(act);
-    }
-  }
+  // 2. Clean up any historical demo/seed records from previous milestones
+  await _cleanLegacySampleRecords(repo, goalRepo);
 
-  // 3. Seed default routine templates if no templates exist
-  final int templateCount = await repo.countTemplates();
-  if (templateCount == 0) {
-    final List<RoutineTemplate> defaultTemplates =
-        SampleTemplates.getDefaultTemplates();
-    for (final RoutineTemplate template in defaultTemplates) {
-      await repo.saveTemplate(template);
-    }
-  }
-
-  // 4. Seed default recurrence rules if none exist
-  final List<RecurrenceRule> existingRules = await repo.getRecurrenceRules();
-  if (existingRules.isEmpty) {
-    final DateTime today = TimeUtils.normalizeDate(DateTime.now());
-    final RecurrenceRule defaultRecurrence = RecurrenceRule(
-      id: 'default_rule_coding',
-      title: 'Daily Coding Practice',
-      category: ActivityCategory.coding,
-      startMinute: 17 * 60, // 17:00
-      endMinute: 18 * 60 + 30, // 18:30
-      recurrenceType: RecurrenceType.weekdays,
-      daysOfWeek: [1, 2, 3, 4, 5],
-      startDate: today,
-      notes: 'Consistent daily problem solving & personal project building.',
-    );
-    await repo.saveRecurrenceRule(defaultRecurrence);
-  }
-
-  // 5. Generate recurring activities for today
+  // 3. Generate recurring activities for today based strictly on user-created rules
   final DateTime today = TimeUtils.normalizeDate(DateTime.now());
   await repo.generateRecurringActivitiesForDate(today);
 
-  // 6. Rebuild pending reminders from today forward
+  // 4. Rebuild pending reminders from today forward for active user activities
   final DateTime futureLimit = today.add(const Duration(days: 14));
   final List<Activity> upcoming = await repo.getActivitiesForDateRange(
     today,
@@ -109,19 +70,102 @@ final FutureProvider<void> databaseInitializerProvider = FutureProvider<void>((
       .where((Activity a) => a.reminderOffsetMinutes != null && !a.isCompleted)
       .toList();
   await notificationService.rescheduleAllReminders(needReminder);
+});
 
-  // 7. Seed default goals if no goals exist
-  final GoalRepository goalRepo = ref.watch(goalRepositoryProvider);
-  final List<Goal> existingGoals = await goalRepo.getGoals();
-  if (existingGoals.isEmpty) {
-    for (final Goal g in SampleGoals.getDefaultGoals()) {
-      await goalRepo.saveGoal(g);
-      for (final GoalMilestone m in g.milestones) {
-        await goalRepo.saveMilestone(m);
+/// Cleans up any identifiable demo/sample records seeded during earlier development milestones
+Future<void> _cleanLegacySampleRecords(
+  ActivityRepository repo,
+  GoalRepository goalRepo,
+) async {
+  try {
+    // A. Remove sample goals
+    const List<String> sampleGoalIds = [
+      'sample_goal_leetcode',
+      'sample_goal_systems',
+      'sample_goal_app',
+    ];
+    for (final String id in sampleGoalIds) {
+      final goal = await goalRepo.getGoalById(id);
+      if (goal != null) {
+        await goalRepo.deleteGoal(id);
       }
     }
+
+    // B. Remove default recurrence rule if present
+    const String sampleRecurrenceId = 'default_rule_coding';
+    final rules = await repo.getRecurrenceRules();
+    if (rules.any((r) => r.id == sampleRecurrenceId)) {
+      await repo.deleteRecurrenceRule(sampleRecurrenceId);
+    }
+
+    // C. Remove sample routine templates by name or description
+    final templates = await repo.getTemplates();
+    for (final template in templates) {
+      final desc = template.description ?? '';
+      final isSample = (template.name == 'College Day' &&
+              desc.contains('university lectures')) ||
+          (template.name == 'Weekend Project Sprint' &&
+              desc.contains('Hackathon-style')) ||
+          (template.name == 'Exam Prep Day' &&
+              desc.contains('Deep study blocks'));
+      if (isSample) {
+        await repo.deleteTemplate(template.id);
+      }
+    }
+
+    // D. Remove sample activities (e.g. Deep Sleep & Recovery from sample generation)
+    final now = DateTime.now();
+    for (int offset = -7; offset <= 7; offset++) {
+      final date = TimeUtils.normalizeDate(now.add(Duration(days: offset)));
+      final activities = await repo.getActivitiesForDate(date);
+      for (final act in activities) {
+        final isSampleAct = (act.title == 'Deep Sleep & Recovery' &&
+                act.category == ActivityCategory.sleep &&
+                act.startMinute == 0 &&
+                act.endMinute == 420) ||
+            (act.title == 'Morning Fuel & Coffee' &&
+                act.category == ActivityCategory.meals &&
+                act.startMinute == 420 &&
+                act.endMinute == 480) ||
+            (act.title == 'Distributed Systems Lecture' &&
+                act.category == ActivityCategory.college &&
+                act.startMinute == 510 &&
+                act.endMinute == 630) ||
+            (act.title == 'Algorithms & Data Structures Practice' &&
+                act.category == ActivityCategory.coding &&
+                act.startMinute == 690 &&
+                act.endMinute == 780) ||
+            (act.title == 'Lunch & Campus Walk' &&
+                act.category == ActivityCategory.meals &&
+                act.startMinute == 780 &&
+                act.endMinute == 840) ||
+            (act.title == 'Dayweaver Flutter Project Deep Dive' &&
+                act.category == ActivityCategory.coding &&
+                act.startMinute == 1020 &&
+                act.endMinute == 1185) ||
+            (act.title == 'Dinner & Relaxation' &&
+                act.category == ActivityCategory.meals &&
+                act.startMinute == 1200 &&
+                act.endMinute == 1260) ||
+            (act.title == 'Nightly Wind-down & Journal' &&
+                act.category == ActivityCategory.rest &&
+                act.startMinute == 1320 &&
+                act.endMinute == 1380) ||
+            (act.title == 'Night Sleep' &&
+                act.category == ActivityCategory.sleep &&
+                act.startMinute == 1380 &&
+                act.endMinute == 1440) ||
+            (act.recurrenceRuleId == 'default_rule_coding');
+
+        if (isSampleAct) {
+          await repo.deleteActivity(act.id);
+        }
+      }
+    }
+  } catch (_) {
+    // Non-fatal cleanup
   }
-});
+}
 
 /// Stream provider for activities on the currently selected date (Today tab)
 final StreamProvider<List<Activity>> activitiesForSelectedDateProvider =

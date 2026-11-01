@@ -42,7 +42,7 @@ void main() {
 
     expect(find.text('Goals & Milestones'), findsOneWidget);
     expect(find.text('Focus & Progress'), findsOneWidget);
-    expect(find.text('Set your first goal'), findsOneWidget);
+    expect(find.text('Start with a goal that matters to you.'), findsOneWidget);
     expect(find.text('New Goal'), findsOneWidget);
   });
 

@@ -245,7 +245,7 @@ class GoalsScreen extends ConsumerWidget {
                           Text(
                             searchQuery.isNotEmpty || activeFilter != null
                                 ? 'No matching goals found'
-                                : 'Set your first goal',
+                                : 'Start with a goal that matters to you.',
                             style: AppTypography.headingSmall,
                           ),
                           const SizedBox(height: 8),

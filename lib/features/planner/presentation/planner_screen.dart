@@ -153,7 +153,7 @@ class PlannerScreen extends ConsumerWidget {
                         ),
                         const SizedBox(height: 14),
                         Text(
-                          'No Activities Scheduled',
+                          'No activities planned yet.',
                           style: AppTypography.titleMedium.copyWith(
                             fontWeight: FontWeight.w700,
                           ),

@@ -50,6 +50,39 @@ class InsightsScreen extends ConsumerWidget {
           _buildWeekNavigator(context, ref, monday, weekRangeString),
           const SizedBox(height: 16),
 
+          if (weeklyMetrics.totalPlannedMinutes == 0)
+            Container(
+              margin: const EdgeInsets.only(bottom: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceElevated,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.borderSubtle),
+              ),
+              child: Column(
+                children: [
+                  const Icon(
+                    Icons.auto_graph_rounded,
+                    size: 44,
+                    color: AppColors.primary,
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    'No activities this week',
+                    style: AppTypography.headingSmall,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Your insights will appear as you build your daily progress.',
+                    textAlign: TextAlign.center,
+                    style: AppTypography.bodySmall.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
           // High-level completion card
           _buildWeeklySummaryCard(context, weeklyMetrics),
           const SizedBox(height: 20),

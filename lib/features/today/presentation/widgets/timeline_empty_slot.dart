@@ -19,14 +19,15 @@ class TimelineEmptySlot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isCompact = height < 40;
+    final isFullDay = gap.durationMinutes == TimeUtils.minutesPerDay;
 
     return InkWell(
       onTap: () {
         ActivityFormSheet.show(
           context,
           initialDate: date,
-          initialStartMinute: gap.startMinute,
-          initialEndMinute: gap.endMinute,
+          initialStartMinute: isFullDay ? 9 * 60 : gap.startMinute,
+          initialEndMinute: isFullDay ? 10 * 60 : gap.endMinute,
         );
       },
       borderRadius: BorderRadius.circular(10),
@@ -70,14 +71,18 @@ class TimelineEmptySlot extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'Unscheduled (${gap.durationFormatted})',
+                          isFullDay
+                              ? 'Your day is open. Add your first activity.'
+                              : 'Unscheduled (${gap.durationFormatted})',
                           style: AppTypography.bodySmall.copyWith(
                             color: AppColors.textSecondary,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                         Text(
-                          '${gap.startFormatted} - ${gap.endFormatted} • Tap to schedule',
+                          isFullDay
+                              ? '24 hours open • Tap anywhere to schedule'
+                              : '${gap.startFormatted} - ${gap.endFormatted} • Tap to schedule',
                           style: AppTypography.labelSmall.copyWith(
                             color: AppColors.textMuted,
                             fontSize: 10,
